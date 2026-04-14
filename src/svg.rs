@@ -106,7 +106,7 @@ impl<'a> Config<'a> {
 /// # use linemd::{render_as_svg, SvgConfig, Parser};
 /// let svg = render_as_svg("Some uninspiring text.".parse_md(), SvgConfig::default());
 /// ```
-pub fn render_as_svg<'a>(tokens: impl AsRef<[Token<'a, ()>]> + 'a, config: Config<'_>) -> String {
+pub fn render_as_svg<'a>(tokens: impl AsRef<[Token<'a>]> + 'a, config: Config<'_>) -> String {
     let mut doc = String::new();
     render_to_buffer(tokens, config, &mut doc);
     doc
@@ -121,7 +121,7 @@ pub fn render_as_svg<'a>(tokens: impl AsRef<[Token<'a, ()>]> + 'a, config: Confi
 /// let svg = svg::render_to_buffer("Some uninspiring text.".parse_md(), SvgConfig::default(), &mut buffer);
 /// ```
 pub fn render_to_buffer<'a>(
-    tokens: impl AsRef<[Token<'a, ()>]> + 'a,
+    tokens: impl AsRef<[Token<'a>]> + 'a,
     config: Config<'_>,
     doc: &mut String,
 ) {
@@ -227,7 +227,7 @@ fn write_until_line_break<'a, const N: usize>(
     span: TSpan<'a, N>,
     tspan_before: &mut u32,
     mut at: usize,
-    tokens: &[Token<()>],
+    tokens: &[Token],
 ) -> usize {
     while at < tokens.len() {
         let token = &tokens[at];
@@ -407,7 +407,7 @@ fn try_apply_text(
 
 fn try_apply_text_token<'a, const N: usize>(
     text: &mut String,
-    token: &Token<()>,
+    token: &Token,
     mut span: TSpan<'a, N>,
     tspan_before: &mut u32,
 ) {

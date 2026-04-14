@@ -1,5 +1,5 @@
 use super::*;
-use core::{ops::Not, slice::SliceIndex};
+use core::{convert::Infallible, ops::Not, slice::SliceIndex};
 
 /// Errors that can occur while parsing.
 #[derive(Debug, Clone, Copy)]
@@ -15,7 +15,7 @@ pub type AtWith<T> = (T, usize);
 pub type AtStr<'a> = AtWith<&'a str>;
 
 /// Convenience type alias that is a tuple of a token and an index.
-pub type AtToken<'a, Custom> = AtWith<Token<'a, Custom>>;
+pub type AtToken<'a, Custom = Infallible> = AtWith<Token<'a, Custom>>;
 
 /// Convenience type alias that is a tuple of a text and an index.
 pub type AtText<'a> = AtWith<Text<'a>>;
@@ -29,13 +29,13 @@ type CustomFn<'a, Custom, S> = fn(&'a S, usize) -> Option<AtToken<'a, Custom>>;
 /// more optimized way for your types.
 pub trait Parser {
     /// Parses self for tokens.
-    fn parse_md(&self) -> Vec<Token<'_, ()>> {
+    fn parse_md(&self) -> Vec<Token<'_>> {
         let mut tokens = Vec::new();
         self.parse_md_with_buf(&mut tokens);
         tokens
     }
     /// Parses self for tokens, and outputs to a buffer.
-    fn parse_md_with_buf<'a>(&'a self, buf: &mut Vec<Token<'a, ()>>) {
+    fn parse_md_with_buf<'a>(&'a self, buf: &mut Vec<Token<'a>>) {
         let mut at = 0;
         while let Some((token, nat)) = self.parse_token(at, |_, _| None) {
             at = nat;
@@ -46,7 +46,7 @@ pub trait Parser {
     fn parse_md_custom<'a, Custom>(
         &'a self,
         custom: CustomFn<'a, Custom, Self>,
-    ) -> Vec<Token<'_, Custom>> {
+    ) -> Vec<Token<'a, Custom>> {
         let mut tokens = Vec::new();
         self.parse_md_with_buf_custom(&mut tokens, custom);
         tokens
@@ -67,7 +67,7 @@ pub trait Parser {
         &'a self,
         at: usize,
         custom: CustomFn<'a, Custom, Self>,
-    ) -> Option<AtToken<'_, Custom>> {
+    ) -> Option<AtToken<'a, Custom>> {
         self.eof(at)
             .not()
             .then(|| {
@@ -246,14 +246,14 @@ pub trait Parser {
         &self,
         at: usize,
         f: F,
-    ) -> Result<Option<AtStr>, (ParserError, Option<AtStr>)> {
+    ) -> Result<Option<AtStr<'_>>, (ParserError, Option<AtStr<'_>>)> {
         self.consume_until(at, |c, _, _| f(c).not())
     }
     fn consume_until<F: Fn(char, usize, usize) -> bool>(
         &self,
         mut at: usize,
         f: F,
-    ) -> Result<Option<AtStr>, (ParserError, Option<AtStr>)> {
+    ) -> Result<Option<AtStr<'_>>, (ParserError, Option<AtStr<'_>>)> {
         let old_at = at;
         loop {
             let (ch, nat) = self.consume_char(at).map_err(|err| {
@@ -274,7 +274,7 @@ pub trait Parser {
         &self,
         at: usize,
         s: &str,
-    ) -> Result<Option<AtStr>, (ParserError, Option<AtStr>)> {
+    ) -> Result<Option<AtStr<'_>>, (ParserError, Option<AtStr<'_>>)> {
         self.consume_until(at, |_, _, at| self.get_range_str(at..).starts_with(s))
     }
     #[inline(always)]
@@ -337,7 +337,7 @@ const fn is_backtick(c: char) -> bool {
 
 /// A token from some parsed text.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Token<'a, Custom: 'a> {
+pub enum Token<'a, Custom: 'a = Infallible> {
     /// Some text.
     Text(Text<'a>),
     /// An URL.
@@ -353,7 +353,7 @@ pub enum Token<'a, Custom: 'a> {
     /// A list item, which can be ordered or unordered.
     /// If `None`, then it is an unordered item.
     ListItem(Option<usize>),
-    /// A code fence. (\`\`\`)
+    /// A code fence. (```)
     CodeFence { code: &'a str, attrs: &'a str },
     /// A line break.
     LineBreak,
