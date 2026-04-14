@@ -428,7 +428,7 @@ fn try_apply_text_token<'a, const N: usize>(
             if *code {
                 span = span.font_family("monospace");
             }
-            write!(text, "{}", span.content(value.trim())).unwrap();
+            write!(text, "{}", span.content(value)).unwrap();
             *tspan_before += 1;
         }
         Token::Url {

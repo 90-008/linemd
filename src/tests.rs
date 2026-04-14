@@ -121,6 +121,7 @@ fn bold_or_italic_text() {
                 bold: true,
                 ..Default::default()
             }),
+            Text::naked(" ").into_token(),
             Token::Text(Text {
                 value: "g",
                 italic: true,
@@ -202,7 +203,7 @@ fn unordered_lists() {
 fn html_paragraph_no_newline() {
     assert_eq!(
         &render_as_html("asdfadsfas".parse_md()),
-        "<p>asdfadsfas </p>"
+        "<p>asdfadsfas</p>"
     )
 }
 
@@ -210,7 +211,7 @@ fn html_paragraph_no_newline() {
 fn html_paragraph_newline() {
     assert_eq!(
         &render_as_html("asdfadsfas\n".parse_md()),
-        "<p>asdfadsfas </p>\n"
+        "<p>asdfadsfas</p>\n"
     )
 }
 
@@ -218,7 +219,7 @@ fn html_paragraph_newline() {
 fn html_paragraph_two_newline() {
     assert_eq!(
         &render_as_html("asdfadsfas\n\n".parse_md()),
-        "<p>asdfadsfas </p>\n\n"
+        "<p>asdfadsfas</p>\n\n"
     )
 }
 
@@ -226,7 +227,7 @@ fn html_paragraph_two_newline() {
 fn html_paragraph_newline_paragraph() {
     assert_eq!(
         &render_as_html("asdfadsfas\nasdfasd".parse_md()),
-        "<p>asdfadsfas \nasdfasd </p>"
+        "<p>asdfadsfas\nasdfasd</p>"
     )
 }
 
@@ -234,7 +235,7 @@ fn html_paragraph_newline_paragraph() {
 fn html_paragraph_two_newline_paragraph() {
     assert_eq!(
         &render_as_html("asdfadsfas\n\nasdfas".parse_md()),
-        "<p>asdfadsfas </p>\n\n<p>asdfas </p>"
+        "<p>asdfadsfas</p>\n\n<p>asdfas</p>"
     )
 }
 
@@ -266,6 +267,7 @@ fn text_seperating() {
         vec![
             Text::naked("asdfadsf ").into_token(),
             Text::code("asdf").into_token(),
+            Text::naked(" ").into_token(),
             Token::Url {
                 name: None,
                 url: "example",
@@ -287,4 +289,9 @@ fn to_html() {
 fn to_svg() {
     let svg = render_as_svg(&MD.parse_md(), SvgConfig::default());
     assert_eq!(&svg, include_str!("../examples/all.svg"));
+}
+
+#[test]
+fn leading_spaces() {
+    assert_eq!("  foo".parse_md(), vec![Text::naked("  foo").into_token()]);
 }

@@ -110,7 +110,7 @@ fn write_text<W: Write>(buf: &mut W, t: &Text) {
 
     write!(
         buf,
-        "{}{}{}{}{}{}{} ",
+        "{}{}{}{}{}{}{}",
         code_s, bold_s, italic_s, value, italic_e, bold_e, code_e
     )
     .unwrap()

@@ -71,15 +71,15 @@ pub trait Parser {
         self.eof(at)
             .not()
             .then(|| {
-                self.consume_whitespace(at)
-                    .map(|(_, at)| {
-                        self.parse_line_break(at)
-                            .or_else(|| custom(self, at))
-                            .or_else(|| self.parse_header(at))
-                            .or_else(|| self.parse_list_item(at))
-                            .or_else(|| self.parse_texty(at))
-                    })
-                    .flatten()
+                let (_, after_ws) = self.consume_whitespace(at)?;
+
+                // block-level tokens: parse after stripping whitespace
+                self.parse_line_break(after_ws)
+                    .or_else(|| custom(self, after_ws))
+                    .or_else(|| self.parse_header(after_ws))
+                    .or_else(|| self.parse_list_item(after_ws))
+                    // inline tokens: parse from original `at`, whitespace folds into text
+                    .or_else(|| self.parse_texty(at))
             })
             .flatten()
     }
